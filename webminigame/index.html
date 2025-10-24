@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minigame: Di tích Bắc Thủ Đức</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    
+    <style>
+        /* CSS NÀY SẼ TẠO GIAO DIỆN GIỐNG MINECRAFT VÀ HỖ TRỢ TIẾNG VIỆT */
+        body {
+            background-color: #3a3a3a; /* Màu nền xám tối (giống đá) */
+            color: #FFFFFF;
+            /* ĐỔI SANG FONT VT323 */
+            font-family: 'VT323', monospace;
+            text-rendering: optimizeSpeed; 
+            -webkit-font-smoothing: none; 
+            -moz-osx-font-smoothing: grayscale; 
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            background-image: url('https://www.transparenttextures.com/patterns/cubes.png');
+            background-size: 120px; 
+            overflow: hidden; /* Ẩn thanh cuộn do hiệu ứng hạt */
+        }
+
+        .game-container {
+            width: 90%;
+            max-width: 800px;
+            background-color: #C6C6C6; /* Màu đá xám sáng */
+            border: 8px solid #7B7B7B; /* Viền xám đậm */
+            padding: 25px;
+            box-shadow: 0 0 0 8px #515151; /* Viền ngoài cùng */
+            text-align: center;
+            image-rendering: pixelated; 
+        }
+
+        /* --- MÀN HÌNH BẮT ĐẦU --- */
+        #start-screen {
+            padding: 20px;
+        }
+
+        #start-screen h1 {
+            color: #DDDDDD;
+            font-size: 3.5rem; /* Tăng cỡ font */
+            text-shadow: 5px 5px #4A4A4A;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+        #start-screen h2 {
+            color: #333;
+            font-size: 2.5rem; /* Tăng cỡ font */
+            margin-bottom: 30px;
+            text-shadow: 2px 2px #FFF;
+        }
+
+        #start-btn {
+            font-family: 'VT323', monospace;
+            font-size: 2rem; /* Tăng cỡ font */
+            padding: 20px 40px;
+            background-color: #5A9A00; /* Màu xanh lá */
+            color: white;
+            border: 4px solid #3E6900;
+            cursor: pointer;
+            text-shadow: 2px 2px #3E6900;
+            transition: background-color 0.1s;
+        }
+        #start-btn:hover {
+            background-color: #6BC100;
+        }
+        /* --- KẾT THÚC MÀN HÌNH BẮT ĐẦU --- */
+
+
+        .game-image {
+            width: 100%;
+            height: 300px;
+            background-color: #000;
+            border: 6px solid #7B7B7B;
+            margin-bottom: 20px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .game-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            image-rendering: pixelated; 
+        }
+
+        /* Ẩn .quiz-container ban đầu */
+        .quiz-container {
+            color: #222;
+            display: none; 
+        }
+
+        #question {
+            font-size: 1.8rem; /* Tăng cỡ font */
+            margin-bottom: 20px;
+            line-height: 1.5;
+            color: #333; 
+            text-shadow: 1px 1px #FFF;
+        }
+
+        #answer-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn {
+            font-family: 'VT323', monospace;
+            font-size: 1.6rem; /* Tăng cỡ font */
+            padding: 18px;
+            cursor: pointer;
+            border: 4px solid #7B7B7B;
+            background-color: #9A9A9A;
+            color: #FFFFFF;
+            text-shadow: 2px 2px #4A4A4A;
+            transition: background-color 0.1s;
+            line-height: 1.3; 
+            box-sizing: border-box; 
+            position: relative; /* Cần cho hiệu ứng */
+        }
+
+        .btn:hover:not(:disabled) {
+            background-color: #AAAAAA;
+        }
+        .btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+
+        .btn.correct {
+            background-color: #5A9A00; 
+            border-color: #3E6900;
+        }
+
+        .btn.wrong {
+            background-color: #D90000; 
+            border-color: #9A0000;
+        }
+
+        #controls {
+            margin-top: 25px;
+        }
+
+        #next-btn {
+            font-family: 'VT323', monospace;
+            font-size: 1.8rem; /* Tăng cỡ font */
+            padding: 15px 30px;
+            background-color: #3A79DA; 
+            color: white;
+            border: 4px solid #285192;
+            cursor: pointer;
+            display: none; 
+            text-shadow: 2px 2px #285192;
+            transition: background-color 0.1s;
+        }
+        #next-btn:hover:not(:disabled) {
+            background-color: #4C8AEB;
+        }
+
+        #result {
+            font-size: 1.7rem; /* Tăng cỡ font */
+            margin-bottom: 15px;
+            min-height: 30px; 
+        }
+
+        /* --- HIỆU ỨNG TRẢ LỜI ĐÚNG --- */
+        .particle-effect {
+            position: fixed; /* Bay ra khỏi nút */
+            width: 12px;
+            height: 12px;
+            background: #5A9A00;
+            border: 2px solid #3E6900;
+            box-shadow: 0 0 5px #FFF;
+            opacity: 1;
+            border-radius: 2px;
+            pointer-events: none; /* Không thể click vào hạt */
+            animation: floatUp 1s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                /* Bay lên, mờ dần và nhỏ lại */
+                transform: translateY(-120px) scale(0.3);
+                opacity: 0;
+            }
+        }
+        /* --- KẾT THÚC HIỆU ỨNG --- */
+        
+        @media (max-width: 768px) {
+            #start-screen h1 { font-size: 2.5rem; }
+            #start-screen h2 { font-size: 1.8rem; }
+            #start-btn { font-size: 1.5rem; }
+
+            #question { font-size: 1.5rem; }
+            #answer-buttons { grid-template-columns: 1fr; }
+            .btn { font-size: 1.3rem; }
+            .game-image { height: 200px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        
+        <div id="start-screen">
+            <h1>KHỐI VUÔNG LỊCH SỬ</h1>
+            <h2>Chủ đề: Tượng đài Bắc Thủ Đức</h2>
+            <div class="game-image">
+                <img src="images/intro.jpg" alt="Minecraft scene">
+            </div>
+            <button id="start-btn">Bắt Đầu</button>
+        </div>
+
+        <div class="quiz-container">
+            <div class="game-image">
+                <img id="quiz-image" src="images/intro.jpg" alt="Quiz scene">
+            </div>
+
+            <div id="question">Câu hỏi sẽ xuất hiện ở đây...</div>
+            <div id="answer-buttons">
+                </div>
+
+            <div id="controls">
+                <div id="result"></div>
+                <button id="next-btn">Tiếp theo</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. DỮ LIỆU CÂU HỎI
+        const questions = [
+            {
+                question: 'Tượng đài Chiến thắng Bắc Thủ Đức tọa lạc tại phường nào của TP. Thủ Đức?',
+                image: 'images/anh1.jpg',
+                answers: [
+                    { text: 'Phường Tam Phú', correct: true },
+                    { text: 'Phường Linh Chiểu', correct: false },
+                    { text: 'Phường Tăng Nhơn Phú A', correct: false },
+                    { text: 'Phường An Phú', correct: false }
+                ]
+            },
+            {
+                question: 'Tượng đài này nhằm vinh danh chiến công của lực lượng nào?',
+                image: 'images/anh2.jpg',
+                answers: [
+                    { text: 'Lực lượng Cảnh sát', correct: false },
+                    { text: 'Lực lượng Hải quân', correct: false },
+                    { text: 'Lực lượng Cánh Bắc Thủ Đức', correct: true },
+                    { text: 'Lực lượng Không quân', correct: false }
+                ]
+            },
+            {
+                question: 'Tượng đài được khởi công xây dựng (lần đầu) vào năm nào?',
+                image: 'images/anh3.jpg',
+                answers: [
+                    { text: '1975', correct: false },
+                    { text: '1994', correct: true },
+                    { text: '2005', correct: false },
+                    { text: '2020', correct: false }
+                ]
+            },
+            {
+                question: 'Công trình NÂNG CẤP tượng đài và khuôn viên đã được khánh thành vào năm nào?',
+                image: 'images/anh4.jpg',
+                answers: [
+                    { text: '2023', correct: false },
+                    { text: '2024', correct: false },
+                    { text: '1995', correct: false },
+                    { text: '2025', correct: true }
+                ]
+            },
+            {
+                question: 'Khu di tích có tổng diện tích khoảng bao nhiêu mét vuông sau khi nâng cấp?',
+                image: 'images/anh5.png',
+                answers: [
+                    { text: 'Dưới 1000m²', correct: false },
+                    { text: 'Khoảng 1500m²', correct: true },
+                    { text: 'Trên 2000m²', correct: false },
+                    { text: 'Khoảng 3.000m²', correct: false }
+                ]
+            },
+            {
+                question: 'Chi phí cho dự án nâng cấp khu di tích là bao nhiêu (ước tính)?',
+                image: 'images/anh5.png',
+                answers: [
+                    { text: 'Khoảng 10 tỷ đồng', correct: false },
+                    { text: 'Khoảng 11 tỷ đồng', correct: true },
+                    { text: 'Khoảng 12 tỷ đồng', correct: false },
+                    { text: 'Khoảng 13 tỷ đồng', correct: false }
+                ]
+            },
+            {
+                question: 'Đâu KHÔNG phải là một hạng mục chính trong dự án nâng cấp?',
+                image: 'images/anh6.jpg',
+                answers: [
+                    { text: 'Xây dựng hồ bơi', correct: true },
+                    { text: 'Cải tạo tượng đài', correct: false },
+                    { text: 'Xây dựng nhà truyền thống', correct: false },
+                    { text: 'Trồng cây xanh, cảnh quan', correct: false }
+                ]
+            },
+            {
+                question: 'Trước khi nâng cấp, tượng đài có gặp tình trạng nào?',
+                image: 'images/anh9.png',
+                answers: [
+                    { text: 'Quá rộng rãi', correct: false },
+                    { text: 'Xuống cấp, thiếu tiện ích', correct: true },
+                    { text: 'Có quá nhiều du khách', correct: false },
+                    { text: 'Thiếu cây xanh', correct: false }
+                ]
+            },
+            {
+                question: 'Mục tiêu chính của việc nâng cấp khu di tích là gì?',
+                image: 'images/anh7.jpg',
+                answers: [
+                    { text: 'Để làm công viên giải trí', correct: false },
+                    { text: 'Làm nơi tổ chức sự kiện âm nhạc', correct: false },
+                    { text: 'Giáo dục truyền thống', correct: true },
+                    { text: 'Xây dựng trung tâm thương mại', correct: false }
+                ]
+            },
+            {
+                question: 'Tượng đài Bắc Thủ Đức được xếp hạng di tích cấp nào?',
+                image: 'images/anh8.png',
+                answers: [
+                    { text: 'Cấp Quốc gia', correct: false },
+                    { text: 'Cấp Tỉnh/Thành phố', correct: true },
+                    { text: 'Cấp Khu vực', correct: false },
+                    { text: 'Chưa được xếp hạng', correct: false }
+                ]
+            }
+        ];
+
+        // 2. LẤY CÁC PHẦN TỬ HTML
+        const startScreen = document.getElementById('start-screen');
+        const startButton = document.getElementById('start-btn');
+        const quizContainer = document.querySelector('.quiz-container');
+        
+        const questionElement = document.getElementById('question');
+        const answerButtonsElement = document.getElementById('answer-buttons');
+        const nextButton = document.getElementById('next-btn');
+        const resultElement = document.getElementById('result');
+        const imageElement = document.getElementById('quiz-image');
+
+        // 3. BIẾN TRẠNG THÁI GAME
+        let currentQuestionIndex = 0;
+        let score = 0;
+
+        // 4. HÀM CHÍNH
+        function startGame() {
+            startScreen.style.display = 'none';
+            quizContainer.style.display = 'block';
+            currentQuestionIndex = 0;
+            score = 0;
+            nextButton.innerHTML = "Tiếp theo";
+            resultElement.innerText = "";
+            showQuestion();
+        }
+
+        function showStartScreen() {
+            quizContainer.style.display = 'none';
+            startScreen.style.display = 'block';
+            // Cập nhật lại ảnh về ảnh gốc của màn hình start
+            startScreen.querySelector('img').src = 'images/intro.jpg';
+        }
+
+        function showQuestion() {
+            resetState();
+            let currentQuestion = questions[currentQuestionIndex];
+            
+            questionElement.innerText = (currentQuestionIndex + 1) + ". " + currentQuestion.question;
+            imageElement.src = currentQuestion.image;
+            
+            currentQuestion.answers.forEach(answer => {
+                const button = document.createElement('button');
+                button.innerText = answer.text;
+                button.classList.add('btn');
+                if (answer.correct) {
+                    button.dataset.correct = answer.correct;
+                }
+                button.addEventListener('click', selectAnswer);
+                answerButtonsElement.appendChild(button);
+            });
+        }
+
+        function resetState() {
+            nextButton.style.display = 'none'; 
+            resultElement.innerText = "";
+            while (answerButtonsElement.firstChild) {
+                answerButtonsElement.removeChild(answerButtonsElement.firstChild);
+            }
+        }
+
+        function selectAnswer(e) {
+            const selectedButton = e.target;
+            const isCorrect = selectedButton.dataset.correct === 'true';
+
+            if (isCorrect) {
+                score++;
+                selectedButton.classList.add('correct');
+                resultElement.innerText = "Chính xác! Bạn có tư duy của một nhà lịch sử học!";
+                resultElement.style.color = '#5A9A00';
+                
+                // === GỌI HIỆU ỨNG KHI TRẢ LỜI ĐÚNG ===
+                createParticles(selectedButton);
+
+            } else {
+                selectedButton.classList.add('wrong');
+                resultElement.innerText = "Sai rồi! Không sao, hãy tiếp tục câu khác nhá!";
+                resultElement.style.color = '#D90000';
+            }
+
+            Array.from(answerButtonsElement.children).forEach(button => {
+                if (button.dataset.correct === 'true') {
+                    button.classList.add('correct');
+                }
+                button.disabled = true; 
+            });
+
+            nextButton.style.display = 'block'; 
+        }
+
+        function showScore() {
+            resetState();
+            questionElement.innerText = `Hoàn thành! Bạn trả lời đúng ${score} / ${questions.length} câu hỏi!`;
+            imageElement.src = 'images/outro.png'; 
+            resultElement.innerText = "Bạn đã khám phá hết di tích!";
+            resultElement.style.color = '#3A79DA'; 
+            nextButton.innerHTML = "Chơi lại";
+            nextButton.style.display = 'block';
+        }
+
+        // === HÀM TẠO HIỆU ỨNG HẠT ===
+        function createParticles(button) {
+            const rect = button.getBoundingClientRect(); // Lấy vị trí của nút
+            const particleCount = 15; // Số lượng hạt
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle-effect');
+
+                // Vị trí bắt đầu ngẫu nhiên xung quanh nút
+                const startX = rect.left + rect.width / 2 + (Math.random() - 0.5) * rect.width;
+                const startY = rect.top + rect.height / 2 + (Math.random() - 0.5) * rect.height;
+
+                particle.style.left = `${startX}px`;
+                particle.style.top = `${startY}px`;
+
+                // Hướng bay ngẫu nhiên
+                const angle = Math.random() * 360;
+                const velocity = Math.random() * 50 + 50; // Tốc độ
+                const translateX = Math.cos(angle * Math.PI / 180) * velocity;
+                const translateY = Math.sin(angle * Math.PI / 180) * velocity - 100; // Bay lên trên
+
+                // Áp dụng animation tùy chỉnh cho mỗi hạt
+                particle.style.animation = 'none'; // Reset
+                void particle.offsetWidth; // Trigger reflow
+
+                // Tùy chỉnh keyframes động
+                const keyframes = `
+                    @keyframes floatUpDynamic {
+                        0% {
+                            transform: translate(0, 0) scale(1);
+                            opacity: 1;
+                        }
+                        100% {
+                            transform: translate(${translateX}px, ${translateY}px) scale(0.3);
+                            opacity: 0;
+                        }
+                    }
+                `;
+                
+                // Thêm keyframes vào tài liệu (nếu chưa có)
+                if (!document.getElementById('particle-keyframes')) {
+                    const styleSheet = document.createElement("style");
+                    styleSheet.id = 'particle-keyframes';
+                    styleSheet.type = "text/css";
+                    document.head.appendChild(styleSheet);
+                }
+                // Dùng một tên animation duy nhất cho mỗi lần click để tránh xung đột
+                const animationName = `floatUpDynamic_${Date.now()}_${i}`;
+                const dynamicKeyframes = keyframes.replace(/floatUpDynamic/g, animationName);
+                document.getElementById('particle-keyframes').innerHTML = dynamicKeyframes;
+                
+                particle.style.animation = `${animationName} 1s ease-out forwards`;
+
+                document.body.appendChild(particle);
+
+                // Tự động xóa hạt sau khi animation kết thúc
+                setTimeout(() => {
+                    particle.remove();
+                }, 1000);
+            }
+        }
+        
+        // 5. BỘ ĐIỀU KHIỂN GAME
+        
+        // Bắt đầu game khi nhấn nút Start
+        startButton.addEventListener('click', startGame);
+
+        // Xử lý nút Tiếp theo / Chơi lại
+        nextButton.addEventListener('click', () => {
+            if (currentQuestionIndex < questions.length - 1) { 
+                currentQuestionIndex++;
+                showQuestion();
+            } else if (currentQuestionIndex === questions.length - 1) { 
+                showScore();
+                currentQuestionIndex++; 
+            } else { 
+                // Khi bấm "Chơi lại"
+                showStartScreen(); 
+            }
+        });
+    </script>
+
+</body>
+</html>
